@@ -39,7 +39,7 @@ module top;
   initial begin
     wait (done);
     $display("Simulation finished at %0t", $time);
-    $finish;
+    $stop;
   end
 
   // защита от зависания
