@@ -1,5 +1,5 @@
 `timescale 1ns/1ps
-`include "student_cfg.svh"   // данные студента
+`include "data.svh"   // данные студента
 
 // Модель APB-мастера (bus functional model).
 // Формирует сигналы шины APB с помощью задач apb_write / apb_read.
