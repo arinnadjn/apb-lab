@@ -1,4 +1,5 @@
 `timescale 1ns/1ps
+`include "student_cfg.svh"   // данные студента
 
 // Модель APB-мастера (bus functional model).
 // Формирует сигналы шины APB с помощью задач apb_write / apb_read.
@@ -82,10 +83,6 @@ module apb_master
   endtask
 
   // ---------------- тестовая последовательность ----------------
-  logic [31:0] address;
-  logic [31:0] data_to_device;
-  logic [31:0] data_from_device;
-
   initial begin
     psel    = 1'b0;
     penable = 1'b0;
@@ -98,14 +95,31 @@ module apb_master
     wait (presetn === 1'b1);          // ждем снятия сброса
     repeat (5) @(posedge pclk);
 
-    address        = BASE_ADDR + 0;
-    data_to_device = 32'h1234_5678;
-    apb_write(address, data_to_device);
-    apb_read_check(address, 32'hAAAA_AAAA);   // бит 0 = 0 -> hAAAA_AAAA
+    // --- 1. запись данных студента в регистры 0x0, 0x4, 0x8, 0xC ---
+    apb_write(BASE_ADDR + 32'h0, `STUDENT_NUMBER);
+    apb_write(BASE_ADDR + 32'h4, `STUDENT_DATE);
+    apb_write(BASE_ADDR + 32'h8, `STUDENT_SURNAME);
+    apb_write(BASE_ADDR + 32'hC, `STUDENT_NAME);
 
-    data_to_device = 32'h1;
-    apb_write(address, data_to_device);
-    apb_read_check(address, 32'h5555_5555);   // бит 0 = 1 -> h5555_5555
+    // --- 2. чтение и проверка ---
+    apb_read_check(BASE_ADDR + 32'h0, `STUDENT_NUMBER);
+    apb_read_check(BASE_ADDR + 32'h4, `STUDENT_DATE);
+    apb_read_check(BASE_ADDR + 32'h8, `STUDENT_SURNAME);
+    apb_read_check(BASE_ADDR + 32'hC, `STUDENT_NAME);
+
+    // --- 3. регистр register_with_some_name (смещение 0x10) ---
+    apb_write(BASE_ADDR + 32'h10, 32'h1234_5678);   // бит 0 = 0
+    apb_read_check(BASE_ADDR + 32'h10, 32'hAAAA_AAAA);
+    apb_write(BASE_ADDR + 32'h10, 32'h1);           // бит 0 = 1
+    apb_read_check(BASE_ADDR + 32'h10, 32'h5555_5555);
+
+    // --- 4. обращение по несуществующему адресу -> pslverr ---
+    apb_write(BASE_ADDR + 32'h20, 32'hDEAD_BEEF);
+    if (last_slverr !== 1'b1) begin
+      errors = errors + 1;
+      $display("[MASTER] FAIL: pslverr was not set for bad address");
+    end else
+      $display("[MASTER] PASS: pslverr set for bad address");
 
     if (errors == 0) $display("[MASTER] TEST PASSED");
     else             $display("[MASTER] TEST FAILED, errors = %0d", errors);
