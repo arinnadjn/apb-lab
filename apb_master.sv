@@ -1,7 +1,7 @@
 `timescale 1ns/1ps
-`include "data.svh"   // данные студента
+`include "data.svh"   // данные
 
-// Модель APB-мастера (bus functional model).
+// Модель APB-мастера 
 // Формирует сигналы шины APB с помощью задач apb_write / apb_read.
 module apb_master
 #(
@@ -45,7 +45,7 @@ module apb_master
     end
   endtask
 
-  // ---------------- чтение ----------------
+  //  чтение 
   task apb_read(input [31:0] addr, output logic [31:0] data);
     begin
       wait ((penable == 0) && (pready == 0));
@@ -66,7 +66,7 @@ module apb_master
     end
   endtask
 
-  // ---------------- проверка прочитанного значения ----------------
+  //  проверка прочитанного значения 
   integer errors = 0;           // счетчик ошибок
 
   task apb_read_check(input [31:0] addr, input [31:0] expected);
@@ -82,7 +82,7 @@ module apb_master
     end
   endtask
 
-  // ---------------- тестовая последовательность ----------------
+  //  тестовая последовательность 
   initial begin
     psel    = 1'b0;
     penable = 1'b0;
@@ -95,25 +95,25 @@ module apb_master
     wait (presetn === 1'b1);          // ждем снятия сброса
     repeat (5) @(posedge pclk);
 
-    // --- 1. запись данных студента в регистры 0x0, 0x4, 0x8, 0xC ---
+    //  запись данных студента в регистры 0x0, 0x4, 0x8, 0xC 
     apb_write(BASE_ADDR + 32'h0, `STUDENT_NUMBER);
     apb_write(BASE_ADDR + 32'h4, `STUDENT_DATE);
     apb_write(BASE_ADDR + 32'h8, `STUDENT_SURNAME);
     apb_write(BASE_ADDR + 32'hC, `STUDENT_NAME);
 
-    // --- 2. чтение и проверка ---
+    // чтение и проверка 
     apb_read_check(BASE_ADDR + 32'h0, `STUDENT_NUMBER);
     apb_read_check(BASE_ADDR + 32'h4, `STUDENT_DATE);
     apb_read_check(BASE_ADDR + 32'h8, `STUDENT_SURNAME);
     apb_read_check(BASE_ADDR + 32'hC, `STUDENT_NAME);
 
-    // --- 3. регистр register_with_some_name (смещение 0x10) ---
+    // регистр register_with_some_name 
     apb_write(BASE_ADDR + 32'h10, 32'h1234_5678);   // бит 0 = 0
     apb_read_check(BASE_ADDR + 32'h10, 32'hAAAA_AAAA);
     apb_write(BASE_ADDR + 32'h10, 32'h1);           // бит 0 = 1
     apb_read_check(BASE_ADDR + 32'h10, 32'h5555_5555);
 
-    // --- 4. обращение по несуществующему адресу -> pslverr ---
+    //  обращение по несуществующему адресу -> pslverr 
     apb_write(BASE_ADDR + 32'h20, 32'hDEAD_BEEF);
     if (last_slverr !== 1'b1) begin
       errors = errors + 1;

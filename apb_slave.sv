@@ -1,10 +1,10 @@
 `timescale 1ns/1ps
 
-// APB slave (версия 2). Карта регистров (адрес = paddr[7:0]):
+// APB slave
 //   0x00 - номер студента в списке группы
 //   0x04 - дата дд.мм.гггг
-//   0x08 - первые 4 буквы фамилии (ASCII)
-//   0x0C - первые 4 буквы имени (ASCII)
+//   0x08 - первые 4 буквы фамилии 
+//   0x0C - первые 4 буквы имени 
 //   0x10 - register_with_some_name: запись 0 в бит 0 -> hAAAA_AAAA, запись 1 -> h5555_5555
 module apb_slave
 (
@@ -73,7 +73,7 @@ module apb_slave
               8'h04: reg_date           <= pwdata;
               8'h08: reg_surname        <= pwdata;
               8'h0C: reg_name           <= pwdata;
-              8'h10: // логика определяется ЗАПИСЫВАЕМЫМ значением pwdata[0]
+              8'h10: // логика определяется записываемым значением pwdata[0]
                 register_with_some_name <= pwdata[0] ? 32'h5555_5555 : 32'hAAAA_AAAA;
               default: begin
                 pslverr <= 1'b1;

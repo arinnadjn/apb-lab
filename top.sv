@@ -46,7 +46,7 @@ module top;
   initial begin
     #100000;
     $display("TIMEOUT");
-    $finish;
+    $stop;
   end
 
   initial
